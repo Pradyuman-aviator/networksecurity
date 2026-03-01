@@ -23,10 +23,7 @@ from sklearn.ensemble import (
     GradientBoostingClassifier,
     RandomForestClassifier,
 )
-import mlflow
 from urllib.parse import urlparse
-
-import dagshub
 
 load_dotenv()
 
@@ -39,29 +36,31 @@ class ModelTrainer:
         except Exception as e:
             raise NetworkSecurityException(e,sys)
         
-    def track_mlflow(self,best_model,classificationmetric):
-        # Initialize DagsHub + MLflow only when training (not at import time)
-        dagshub.init(repo_owner='its-me-meax', repo_name='networksecurity', mlflow=True)
-        tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "https://dagshub.com/its-me-meax/networksecurity.mlflow")
-        mlflow.set_tracking_uri(tracking_uri)
+    def track_mlflow(self, best_model, classificationmetric):
+        try:
+            import mlflow
+            import dagshub
+            dagshub.init(repo_owner='its-me-meax', repo_name='networksecurity', mlflow=True)
+            tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "https://dagshub.com/its-me-meax/networksecurity.mlflow")
+            mlflow.set_tracking_uri(tracking_uri)
 
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
-        with mlflow.start_run():
-            f1_score=classificationmetric.f1_score
-            precision_score=classificationmetric.precision_score
-            recall_score=classificationmetric.recall_score
+            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
+            with mlflow.start_run():
+                f1_score = classificationmetric.f1_score
+                precision_score = classificationmetric.precision_score
+                recall_score = classificationmetric.recall_score
 
-            mlflow.log_metric("f1_score",f1_score)
-            mlflow.log_metric("precision",precision_score)
-            mlflow.log_metric("recall_score",recall_score)
+                mlflow.log_metric("f1_score", f1_score)
+                mlflow.log_metric("precision", precision_score)
+                mlflow.log_metric("recall_score", recall_score)
 
-            # Model registry does not work with file store
-            if tracking_url_type_store != "file":
-                mlflow.sklearn.log_model(best_model, "model", registered_model_name="NetworkSecurityModel")
-            else:
-                mlflow.sklearn.log_model(best_model, "model")
-
-
+                # Model registry does not work with file store
+                if tracking_url_type_store != "file":
+                    mlflow.sklearn.log_model(best_model, "model", registered_model_name="NetworkSecurityModel")
+                else:
+                    mlflow.sklearn.log_model(best_model, "model")
+        except Exception as e:
+            logging.warning(f"MLflow tracking skipped: {e}")
         
     def train_model(self,X_train,y_train,x_test,y_test):
         models = {
