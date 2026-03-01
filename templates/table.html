@@ -1,21 +1,64 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Data Table</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <h2>Predicted Data</h2>
-    {{ table | safe }}
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Analysis Results{% endblock %}
+{% block nav_analyze %}active{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h1>Analysis Results</h1>
+    <p>Phishing threat predictions for your uploaded dataset</p>
+</section>
+
+<section class="results-section">
+    <div class="results-header">
+        <h2>Prediction Output</h2>
+        <div>
+            <a href="/analyze" class="btn btn-secondary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" width="16" height="16">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                New Analysis
+            </a>
+        </div>
+    </div>
+
+    <div class="table-container">
+        {{ table | safe }}
+    </div>
+
+    <div style="text-align: center; margin-top: 32px;">
+        <p style="font-size: 13px; color: var(--text-muted);">
+            Results saved to prediction_output/output.csv
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Highlight prediction column values
+    document.addEventListener('DOMContentLoaded', () => {
+        const table = document.querySelector('.table-container table');
+        if (!table) return;
+
+        const rows = table.querySelectorAll('tbody tr, tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length === 0) return;
+            const lastCell = cells[cells.length - 1];
+            const val = parseFloat(lastCell.textContent.trim());
+
+            if (val === 1 || val === 1.0) {
+                lastCell.style.color = '#f87171';
+                lastCell.textContent = '1 (Phishing)';
+            } else if (val === 0 || val === 0.0) {
+                lastCell.style.color = '#34d399';
+                lastCell.textContent = '0 (Legitimate)';
+            }
+        });
+    });
+</script>
+{% endblock %}

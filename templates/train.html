@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Train Model{% endblock %}
+{% block nav_train %}active{% endblock %}
+
+{% block content %}
+<section class="page-header reveal delay-1">
+    <h1>Model Training</h1>
+    <p>Execute the full ML pipeline to train and evaluate classification models</p>
+</section>
+
+<section class="section" style="padding-top: 24px;">
+    <div class="card train-card reveal-scale delay-2">
+        <div class="train-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+        </div>
+        <h2>Training Pipeline</h2>
+        <p>
+            This will execute the complete 4-stage pipeline: data ingestion from MongoDB,
+            schema validation with drift detection, KNN imputation preprocessing, and
+            multi-model training with hyperparameter tuning. The best model is automatically
+            selected and saved.
+        </p>
+
+        <div class="pipeline-steps" id="pipelineSteps">
+            <div class="pipeline-step" id="step-1">
+                <p class="step-number">01</p>
+                <p class="step-name">Ingestion</p>
+            </div>
+            <div class="pipeline-step" id="step-2">
+                <p class="step-number">02</p>
+                <p class="step-name">Validation</p>
+            </div>
+            <div class="pipeline-step" id="step-3">
+                <p class="step-number">03</p>
+                <p class="step-name">Transformation</p>
+            </div>
+            <div class="pipeline-step" id="step-4">
+                <p class="step-number">04</p>
+                <p class="step-name">Training</p>
+            </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" id="trainBtn" onclick="startTraining()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            Start Training
+        </button>
+
+        <div class="status-msg" id="statusMsg"></div>
+        <p id="elapsedTimer"
+            style="font-size: 13px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 20px; display: none;">
+        </p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const trainBtn = document.getElementById('trainBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const elapsedTimer = document.getElementById('elapsedTimer');
+    const steps = [
+        document.getElementById('step-1'),
+        document.getElementById('step-2'),
+        document.getElementById('step-3'),
+        document.getElementById('step-4')
+    ];
+
+    let timerInterval = null;
+
+    function animateSteps() {
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i > 0) steps[i - 1].classList.replace('active', 'complete');
+            if (i < steps.length) {
+                steps[i].classList.add('active');
+                i++;
+            } else {
+                clearInterval(interval);
+            }
+        }, 3000);
+        return interval;
+    }
+
+    function startTimer() {
+        const startTime = Date.now();
+        elapsedTimer.style.display = 'block';
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(elapsed / 60);
+            const secs = elapsed % 60;
+            elapsedTimer.textContent = 'Elapsed: ' + String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    }
+
+    async function startTraining() {
+        trainBtn.disabled = true;
+        trainBtn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px;"></div> Training in progress...';
+        statusMsg.classList.remove('visible', 'success', 'error');
+        steps.forEach(s => s.classList.remove('active', 'complete'));
+
+        const stepInterval = animateSteps();
+        startTimer();
+
+        try {
+            const response = await fetch('/train');
+            const text = await response.text();
+            clearInterval(stepInterval);
+            stopTimer();
+
+            if (!response.ok) {
+                steps.forEach(s => s.classList.remove('active'));
+                statusMsg.textContent = 'Training encountered an error. Check server logs for details.';
+                statusMsg.classList.add('visible', 'error');
+            } else {
+                steps.forEach(s => { s.classList.remove('active'); s.classList.add('complete'); });
+                statusMsg.textContent = 'Training completed successfully. The best model has been saved to final_model/.';
+                statusMsg.classList.add('visible', 'success');
+            }
+        } catch (err) {
+            clearInterval(stepInterval);
+            stopTimer();
+            steps.forEach(s => s.classList.remove('active'));
+            statusMsg.textContent = 'Connection error: Could not reach the server.';
+            statusMsg.classList.add('visible', 'error');
+        }
+
+        trainBtn.disabled = false;
+        trainBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg> Start Training';
+    }
+</script>
+{% endblock %}

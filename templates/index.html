@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-badge reveal delay-1">System Online</div>
+    <h1 class="reveal delay-2">
+        Network<br><span class="gradient-text">Threat Detection</span>
+    </h1>
+    <p class="hero-subtitle reveal delay-3">
+        Advanced machine learning pipeline for detecting phishing attacks in network traffic.
+        Upload datasets, train models, and get real-time threat analysis.
+    </p>
+    <div class="btn-group reveal delay-4">
+        <a href="/analyze" class="btn btn-primary btn-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            Upload Dataset
+        </a>
+        <a href="/train-model" class="btn btn-secondary btn-lg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+            </svg>
+            Train Model
+        </a>
+    </div>
+</section>
+
+<!-- Stats -->
+<section class="section">
+    <div class="card-grid">
+        <div class="card stat-card reveal delay-1">
+            <p class="stat-label">Classification Models</p>
+            <p class="stat-value cyan">5</p>
+            <p class="stat-desc">Random Forest, Gradient Boosting, Decision Tree, Logistic Regression, AdaBoost</p>
+        </div>
+        <div class="card stat-card reveal delay-2">
+            <p class="stat-label">Training Pipeline</p>
+            <p class="stat-value violet">4-Stage</p>
+            <p class="stat-desc">Ingestion, Validation, Transformation, Model Training</p>
+        </div>
+        <div class="card stat-card reveal delay-3">
+            <p class="stat-label">Experiment Tracking</p>
+            <p class="stat-value green">MLflow</p>
+            <p class="stat-desc">F1 Score, Precision, Recall logged per run via DagsHub</p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section">
+    <div class="section-header reveal">
+        <h2>How It <span class="gradient-text">Works</span></h2>
+        <p>End-to-end automated pipeline from raw data to threat predictions</p>
+    </div>
+    <div class="pipeline-steps reveal delay-2">
+        <div class="pipeline-step">
+            <p class="step-number">01</p>
+            <p class="step-name">Data Ingestion</p>
+        </div>
+        <div class="pipeline-step">
+            <p class="step-number">02</p>
+            <p class="step-name">Validation</p>
+        </div>
+        <div class="pipeline-step">
+            <p class="step-number">03</p>
+            <p class="step-name">Transformation</p>
+        </div>
+        <div class="pipeline-step">
+            <p class="step-number">04</p>
+            <p class="step-name">Model Training</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

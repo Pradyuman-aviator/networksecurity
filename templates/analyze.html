@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Analyze{% endblock %}
+{% block nav_analyze %}active{% endblock %}
+
+{% block content %}
+<section class="page-header reveal delay-1">
+    <h1>Analyze Network Data</h1>
+    <p>Upload a CSV dataset to detect phishing threats using the trained model</p>
+</section>
+
+<section class="section" style="padding-top: 24px;">
+    <form id="predictForm" action="/predict" method="post" enctype="multipart/form-data">
+        <div class="upload-zone reveal delay-2" id="uploadZone" onclick="document.getElementById('fileInput').click();">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <h3>Drop your CSV file here</h3>
+            <p>or <span class="browse-link">browse files</span> to upload</p>
+            <input type="file" name="file" id="fileInput" class="file-input" accept=".csv" required>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="file-info" id="fileInfo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span id="fileName"></span>
+            </div>
+        </div>
+
+        <div class="reveal delay-3" style="text-align: center; margin-top: 36px;">
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                Run Threat Analysis
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const submitBtn = document.getElementById('submitBtn');
+    const form = document.getElementById('predictForm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const loadingText = document.getElementById('loadingText');
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length && files[0].name.endsWith('.csv')) {
+            fileInput.files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length) handleFileSelect(e.target.files[0]);
+    });
+
+    function handleFileSelect(file) {
+        fileName.textContent = file.name + ' (' + formatBytes(file.size) + ')';
+        fileInfo.classList.add('visible');
+        uploadZone.classList.add('file-selected');
+        submitBtn.disabled = false;
+        submitBtn.style.transform = 'scale(1.05)';
+        setTimeout(() => { submitBtn.style.transform = ''; }, 300);
+    }
+
+    function formatBytes(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    form.addEventListener('submit', () => {
+        loadingText.textContent = 'Running threat analysis...';
+        loadingOverlay.classList.add('visible');
+    });
+</script>
+{% endblock %}

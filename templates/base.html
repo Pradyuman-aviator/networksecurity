@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sentinel - ML-powered network threat detection and phishing analysis system">
+    <title>{% block title %}Sentinel{% endblock %} | Network Security</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        // Restore theme before paint
+        (function () {
+            var t = localStorage.getItem('sentinel-theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+        })();
+    </script>
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="/" class="navbar-brand">
+            <span class="navbar-title">Sentinel</span>
+        </a>
+        <ul class="navbar-right">
+            <li>
+                <a href="/" class="nav-link {% block nav_dashboard %}{% endblock %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="/analyze" class="nav-link {% block nav_analyze %}{% endblock %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12V7H5a2 2 0 010-4h14v4" />
+                        <path d="M3 5v14a2 2 0 002 2h16v-5" />
+                        <path d="M18 12a2 2 0 000 4h4v-4h-4z" />
+                    </svg>
+                    <span>Analyze</span>
+                </a>
+            </li>
+            <li>
+                <a href="/train-model" class="nav-link {% block nav_train %}{% endblock %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                    <span>Train</span>
+                </a>
+            </li>
+            <li>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+                    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                    <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                </button>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p class="loading-text" id="loadingText">Processing...</p>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>Sentinel Network Security &mdash; ML-Powered Threat Detection</p>
+    </footer>
+
+    <!-- Dot Grid -->
+    <script src="/static/js/dotgrid.js"></script>
+
+    <!-- Theme Toggle -->
+    <script>
+        (function () {
+            var toggle = document.getElementById('themeToggle');
+            toggle.addEventListener('click', function () {
+                var current = document.documentElement.getAttribute('data-theme');
+                var next = current === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('sentinel-theme', next);
+            });
+        })();
+    </script>
+
+    <!-- Scroll Reveal (IntersectionObserver) -->
+    <script>
+        (function () {
+            var observer = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+            document.querySelectorAll('.reveal, .reveal-scale').forEach(function (el) {
+                observer.observe(el);
+            });
+        })();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

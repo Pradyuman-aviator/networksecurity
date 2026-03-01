@@ -9,5 +9,5 @@ pyyaml
 dagshub
 fastapi
 uvicorn
-
-##-e .
+jinja2
+python-multipart

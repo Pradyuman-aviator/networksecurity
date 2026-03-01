@@ -1,5 +1,6 @@
 import os
 import sys
+from dotenv import load_dotenv
 
 from networksecurity.exception.exception import NetworkSecurityException 
 from networksecurity.logging.logger import logging
@@ -15,7 +16,6 @@ from networksecurity.utils.main_utils.utils import load_numpy_array_data,evaluat
 from networksecurity.utils.ml_utils.metric.classification_metric import get_classification_score
 
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import (
@@ -27,11 +27,13 @@ import mlflow
 from urllib.parse import urlparse
 
 import dagshub
+
+load_dotenv()
+
 dagshub.init(repo_owner='its-me-meax', repo_name='networksecurity', mlflow=True)
 
-os.environ["MLFLOW_TRACKING_URI"]="https://dagshub.com/its-me-meax/networksecurity.mlflow"
-os.environ["MLFLOW_TRACKING_USERNAME"]="its-me-meax"
-os.environ["MLFLOW_TRACKING_PASSWORD"]="7b903ca8cc2b359a6f7dfafc07a4a5f63b813c90"
+# MLflow credentials loaded from .env file
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "https://dagshub.com/its-me-meax/networksecurity.mlflow")
 
 
 
@@ -46,7 +48,7 @@ class ModelTrainer:
             raise NetworkSecurityException(e,sys)
         
     def track_mlflow(self,best_model,classificationmetric):
-        mlflow.set_tracking_uri("https://dagshub.com/its-me-meax/networksecurity.mlflow")
+        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
 
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():
@@ -54,20 +56,12 @@ class ModelTrainer:
             precision_score=classificationmetric.precision_score
             recall_score=classificationmetric.recall_score
 
-            
-
             mlflow.log_metric("f1_score",f1_score)
             mlflow.log_metric("precision",precision_score)
             mlflow.log_metric("recall_score",recall_score)
-            mlflow.sklearn.log_model(best_model,"model")
-            # Model registry does not work with file store
-            
-            if tracking_url_type_store != "file":
 
-                # Register the model
-                # There are other ways to use the Model Registry, which depends on the use case,
-                # please refer to the doc for more information:
-                # https://mlflow.org/docs/latest/model-registry.html#api-workflow
+            # Model registry does not work with file store
+            if tracking_url_type_store != "file":
                 mlflow.sklearn.log_model(best_model, "model", registered_model_name="NetworkSecurityModel")
             else:
                 mlflow.sklearn.log_model(best_model, "model")

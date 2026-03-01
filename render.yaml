@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: networksecurity
+    runtime: docker
+    plan: free
+    dockerfilePath: ./dockerfile
+    envVars:
+      - key: MONGODB_URL_KEY
+        sync: false
+      - key: MONGO_DB_URL
+        sync: false
+      - key: MLFLOW_TRACKING_URI
+        sync: false
+      - key: MLFLOW_TRACKING_USERNAME
+        sync: false
+      - key: MLFLOW_TRACKING_PASSWORD
+        sync: false
