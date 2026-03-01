@@ -10,7 +10,6 @@ mongo_db_url = os.getenv("MONGODB_URL_KEY")
 import pymongo
 from networksecurity.exception.exception import NetworkSecurityException
 from networksecurity.logging.logger import logging
-from networksecurity.pipeline.training_pipeline import TrainingPipeline
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File, UploadFile, Request
@@ -25,13 +24,16 @@ from networksecurity.utils.main_utils.utils import load_object
 from networksecurity.utils.ml_utils.model.estimator import NetworkModel
 
 
-client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
-
-from networksecurity.constant.training_pipeline import DATA_INGESTION_COLLECTION_NAME
-from networksecurity.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME
-
-database = client[DATA_INGESTION_DATABASE_NAME]
-collection = database[DATA_INGESTION_COLLECTION_NAME]
+# Connect to MongoDB — fail gracefully so the server still starts
+try:
+    client = pymongo.MongoClient(mongo_db_url, tlsCAFile=ca)
+    from networksecurity.constant.training_pipeline import DATA_INGESTION_COLLECTION_NAME
+    from networksecurity.constant.training_pipeline import DATA_INGESTION_DATABASE_NAME
+    database = client[DATA_INGESTION_DATABASE_NAME]
+    collection = database[DATA_INGESTION_COLLECTION_NAME]
+except Exception as e:
+    logging.warning(f"MongoDB connection deferred: {e}")
+    client = None
 
 app = FastAPI()
 origins = ["*"]
@@ -73,6 +75,8 @@ async def train_page(request: Request):
 @app.get("/train", tags=["api"])
 async def train_route():
     try:
+        # Lazy import to avoid loading dagshub/mlflow at server startup
+        from networksecurity.pipeline.training_pipeline import TrainingPipeline
         train_pipeline = TrainingPipeline()
         train_pipeline.run_pipeline()
         return Response("Training is successful")
@@ -100,3 +104,4 @@ async def predict_route(request: Request, file: UploadFile = File(...)):
 
 if __name__ == "__main__":
     app_run(app, host="0.0.0.0", port=8080)
+
