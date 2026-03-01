@@ -30,14 +30,6 @@ import dagshub
 
 load_dotenv()
 
-dagshub.init(repo_owner='its-me-meax', repo_name='networksecurity', mlflow=True)
-
-# MLflow credentials loaded from .env file
-MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "https://dagshub.com/its-me-meax/networksecurity.mlflow")
-
-
-
-
 
 class ModelTrainer:
     def __init__(self,model_trainer_config:ModelTrainerConfig,data_transformation_artifact:DataTransformationArtifact):
@@ -48,7 +40,10 @@ class ModelTrainer:
             raise NetworkSecurityException(e,sys)
         
     def track_mlflow(self,best_model,classificationmetric):
-        mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+        # Initialize DagsHub + MLflow only when training (not at import time)
+        dagshub.init(repo_owner='its-me-meax', repo_name='networksecurity', mlflow=True)
+        tracking_uri = os.getenv("MLFLOW_TRACKING_URI", "https://dagshub.com/its-me-meax/networksecurity.mlflow")
+        mlflow.set_tracking_uri(tracking_uri)
 
         tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
         with mlflow.start_run():

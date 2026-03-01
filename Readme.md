@@ -1,388 +1,362 @@
-<br># 🛡️ Sentinel — Network Threat Detection System
+<div align="center">
 
-An end-to-end machine learning pipeline for detecting phishing attacks in network traffic. Built with a modern **Sentinel**-themed dark UI, this system ingests network data from MongoDB, trains multiple classifiers with hyperparameter tuning, tracks experiments with MLflow, and serves real-time predictions via a FastAPI web application.
+# 🛡️ SENTINEL
 
-> **Live Demo**: [Deploy your own for free on Render →](#-deploy-to-render-free)
+### AI-Powered Network Threat Detection System
 
----
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![scikit-learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![MLflow](https://img.shields.io/badge/MLflow-0194E2?style=for-the-badge&logo=mlflow&logoColor=white)](https://mlflow.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://mongodb.com)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 
-## 📋 Table of Contents
+**An end-to-end ML pipeline that detects phishing attacks in network traffic — from raw data ingestion to real-time predictions — wrapped in a stunning, modern web interface.**
 
-- [Overview](#-overview)
-- [Screenshots](#-screenshots)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Usage](#-usage)
-- [ML Pipeline Details](#-ml-pipeline-details)
-- [API Endpoints](#-api-endpoints)
-- [Deploy to Render (Free)](#-deploy-to-render-free)
-- [Docker Deployment](#-docker-deployment)
-- [Experiment Tracking](#-experiment-tracking)
-- [Environment Variables](#-environment-variables)
-- [Contributing](#-contributing)
-- [License](#-license)
+[Live Demo](#-deploy-to-render-free) · [Get Started](#-quick-start) · [API Docs](#-api-reference) · [MLflow Dashboard](https://dagshub.com/its-me-meax/networksecurity.mlflow)
 
 ---
 
-## 🔍 Overview
+</div>
 
-This project builds a **phishing detection classifier** that analyzes network traffic features to distinguish between legitimate and phishing activity. It follows a modular, production-style ML pipeline architecture with:
+## ✨ Preview
 
-- 🔄 **Automated data ingestion** from MongoDB
-- ✅ **Data validation** with schema enforcement and drift detection
-- 🧹 **Feature transformation** using KNN Imputation for missing values
-- 🤖 **Multi-model training** with hyperparameter tuning across 5 classifiers
-- 📊 **Experiment tracking** via MLflow + DagsHub
-- 🌐 **Modern web UI** with dark/light themes and animated dashboard
-- 🚀 **One-click deployment** to Render (free tier)
-- 🐳 **Dockerized** for consistent environments
+<div align="center">
+
+<img src="assets/dashboard.png" alt="Sentinel Dashboard — Dark Mode" width="100%" />
+
+<br/><br/>
+
+<table>
+<tr>
+<td width="50%"><img src="assets/analyze.png" alt="Analyze Page" /></td>
+<td width="50%">
+
+### 🎨 Design Features
+- **Glassmorphism** cards with blur effects  
+- **Interactive dot-grid** animated background  
+- **Gradient animations** (cyan ↔ violet)  
+- **Dark / Light** theme with smooth toggle  
+- **Scroll-reveal** entrance animations  
+- **Drag-and-drop** CSV uploads  
+- **Live pipeline** step visualization  
+- **Responsive** — works on any screen  
+
+</td>
+</tr>
+</table>
+
+</div>
 
 ---
 
-## 📸 Screenshots
+## 🧠 What It Does
 
-| Dashboard | Analyze (Upload) | Train Model |
-|:---------:|:-----------------:|:-----------:|
-| Dark-themed hero with pipeline stats | CSV upload with drag-and-drop | One-click training trigger |
+Sentinel analyzes network traffic features and classifies each data point as **legitimate** or **phishing** using machine learning. The system automates the entire journey:
 
-> The UI features a modern **Sentinel** design with glassmorphism cards, dot-grid backgrounds, scroll-reveal animations, and a dark/light theme toggle.
+```
+📥 Data Ingestion → ✅ Validation → 🔄 Transformation → 🤖 Training → 🎯 Prediction
+```
+
+| Feature | Description |
+|---------|-------------|
+| **5 ML Models** | Random Forest, Gradient Boosting, Decision Tree, Logistic Regression, AdaBoost |
+| **Auto-Tuning** | Hyperparameter tuning via GridSearchCV across all models |
+| **Best Model Selection** | Automatically picks the highest-scoring classifier |
+| **Drift Detection** | Schema validation + feature drift reports per training run |
+| **Experiment Tracking** | Every run logged to MLflow with F1, Precision, Recall metrics |
+| **Web Interface** | Upload CSV → get predictions, or trigger training from the browser |
+| **REST API** | Programmatic `/train` and `/predict` endpoints |
 
 ---
 
 ## 🏗️ Architecture
 
 ```
-┌──────────────┐     ┌────────────────┐     ┌──────────────────┐     ┌───────────────┐
-│   MongoDB    │────▶│ Data Ingestion │────▶│  Data Validation │────▶│    Data        │
-│  (Raw Data)  │     │  (Train/Test   │     │  (Schema Check,  │     │ Transformation │
-│              │     │    Split)      │     │   Drift Report)  │     │ (KNN Imputer)  │
-└──────────────┘     └────────────────┘     └──────────────────┘     └───────┬────────┘
-                                                                            │
-                          ┌──────────────┐     ┌──────────────────┐         │
-                          │  FastAPI     │◀────│  Model Trainer   │◀────────┘
-                          │  (Sentinel   │     │  (5 Classifiers, │
-                          │   Web UI)    │     │   MLflow Track)  │
-                          └──────────────┘     └──────────────────┘
+                              ┌─────────────────────────────────────────┐
+                              │         SENTINEL WEB APPLICATION        │
+                              │      FastAPI + Jinja2 + Sentinel UI     │
+                              └──────────────┬──────────────────────────┘
+                                             │
+          ┌──────────────────────────────────────────────────────────────┐
+          │                    ML TRAINING PIPELINE                      │
+          │                                                              │
+          │  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐ │
+          │  │  01 Data  │──▶│  02 Data │──▶│  03 Data │──▶│ 04 Model │ │
+          │  │ Ingestion │   │Validation│   │Transform │   │ Training │ │
+          │  │          │   │          │   │          │   │          │ │
+          │  │ MongoDB  │   │ Schema + │   │   KNN    │   │5 Models +│ │
+          │  │ → CSV    │   │  Drift   │   │ Imputer  │   │ MLflow   │ │
+          │  └──────────┘   └──────────┘   └──────────┘   └──────────┘ │
+          └──────────────────────────────────────────────────────────────┘
+                                             │
+                              ┌──────────────┴──────────────┐
+                              │                             │
+                         ┌────┴────┐                  ┌─────┴─────┐
+                         │ MongoDB │                  │  MLflow   │
+                         │  Atlas  │                  │  DagsHub  │
+                         └─────────┘                  └───────────┘
 ```
 
 ---
 
 ## 🧰 Tech Stack
 
-| Category              | Technology                                     |
-|-----------------------|------------------------------------------------|
-| **Language**          | Python 3.10+                                   |
-| **ML Framework**      | Scikit-learn                                   |
-| **Web Framework**     | FastAPI + Uvicorn                              |
-| **Frontend**          | Jinja2 Templates, Vanilla CSS, JavaScript      |
-| **Database**          | MongoDB (via PyMongo)                          |
-| **Experiment Tracking** | MLflow + DagsHub                             |
-| **Data Processing**   | Pandas, NumPy                                  |
-| **Containerization**  | Docker                                         |
-| **Deployment**        | Render (Free Tier)                             |
+<table>
+<tr>
+<td>
+
+| Layer | Technology |
+|-------|-----------|
+| **Language** | Python 3.10+ |
+| **ML** | Scikit-learn |
+| **API** | FastAPI + Uvicorn |
+| **Frontend** | Jinja2, Vanilla CSS/JS |
+| **Database** | MongoDB Atlas |
+
+</td>
+<td>
+
+| Layer | Technology |
+|-------|-----------|
+| **Tracking** | MLflow + DagsHub |
+| **Data** | Pandas, NumPy |
+| **Fonts** | Inter, JetBrains Mono |
+| **Container** | Docker |
+| **Deploy** | Render (Free) |
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- **Python 3.10+** · **Git** · **MongoDB** ([Atlas Free Tier](https://mongodb.com/atlas))
+
+### 1️⃣ Clone & Setup
+
+```bash
+git clone https://github.com/its-me-meax/networksecurity.git
+cd networksecurity
+
+python -m venv venv
+# Windows
+venv\Scripts\activate
+# macOS / Linux
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### 2️⃣ Configure Environment
+
+Create a `.env` file in the project root:
+
+```env
+# MongoDB (required)
+MONGODB_URL_KEY=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+MONGO_DB_URL=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+
+# MLflow / DagsHub (optional — for experiment tracking)
+MLFLOW_TRACKING_URI=https://dagshub.com/<username>/networksecurity.mlflow
+MLFLOW_TRACKING_USERNAME=<dagshub-username>
+MLFLOW_TRACKING_PASSWORD=<dagshub-token>
+```
+
+### 3️⃣ Load Data & Run
+
+```bash
+# Seed MongoDB with the phishing dataset
+python push_data.py
+
+# Option A: Run training pipeline (CLI)
+python main.py
+
+# Option B: Launch the web app
+python app.py
+# → Open http://localhost:8080
+```
+
+---
+
+## 🌐 API Reference
+
+| Method | Endpoint | Description |
+|:------:|----------|-------------|
+| `GET` | `/` | 🏠 Dashboard — Sentinel landing page |
+| `GET` | `/analyze` | 📊 Upload page — CSV file upload for predictions |
+| `GET` | `/train-model` | 🏋️ Training page — trigger pipeline from the UI |
+| `GET` | `/train` | ⚡ **API** — Runs the full training pipeline |
+| `POST` | `/predict` | 🎯 **API** — Upload CSV → get phishing predictions |
+
+### Example: Predict via cURL
+
+```bash
+curl -X POST "http://localhost:8080/predict" -F "file=@network_data.csv"
+```
+
+Returns an HTML table: each row annotated with `predicted_column` → `0` = safe, `1` = phishing.
+
+---
+
+## 🤖 ML Pipeline Deep Dive
+
+### Stage 1 — Data Ingestion
+> Connects to MongoDB Atlas, exports the `NetworkData` collection, and splits into **80/20 train/test sets**.
+
+### Stage 2 — Data Validation
+> Validates against `data_schema/schema.yaml`. Generates a **drift report** to detect distribution shifts between training runs.
+
+### Stage 3 — Data Transformation
+> Applies **KNN Imputer** (k=3, uniform weights) to handle missing values. Saves the fitted preprocessor as a pickle artifact.
+
+### Stage 4 — Model Training
+> Trains 5 classifiers with hyperparameter tuning, selects the best, and logs everything to MLflow:
+
+| Model | Tuned Parameters |
+|-------|-----------------|
+| Random Forest | `n_estimators`: [8, 16, 32, 128, 256] |
+| Decision Tree | `criterion`: [gini, entropy, log_loss] |
+| Gradient Boosting | `learning_rate`, `subsample`, `n_estimators` |
+| Logistic Regression | Defaults |
+| AdaBoost | `learning_rate`, `n_estimators` |
+
+**Selection criteria**: Best score · Min threshold: **0.6** · Overfit tolerance: **0.05**
+
+---
+
+## ☁️ Deploy to Render (Free)
+
+Render offers a **free tier** with Docker support — zero cost, auto-deploy on push.
+
+### Step-by-Step
+
+1. **Push** your code to GitHub
+2. **Sign up** at [render.com](https://render.com) (free)
+3. Click **New → Web Service** → connect your GitHub repo
+4. Configure:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app:app --host 0.0.0.0 --port 10000`
+   - **Plan**: Free
+5. Add **Environment Variables**:
+
+   | Key | Value |
+   |-----|-------|
+   | `MONGODB_URL_KEY` | Your MongoDB connection string |
+   | `MONGO_DB_URL` | Your MongoDB connection string |
+   | `MLFLOW_TRACKING_URI` | DagsHub MLflow URL |
+   | `MLFLOW_TRACKING_USERNAME` | DagsHub username |
+   | `MLFLOW_TRACKING_PASSWORD` | DagsHub token |
+
+6. Click **Create Web Service** → Done! 🎉
+
+> **📍 Your app will be live at** `https://<app-name>.onrender.com`  
+> **🔄 Auto-deploys** on every push to `main`  
+> **💡 Tip**: Free tier sleeps after ~15min idle. Use [cron-job.org](https://cron-job.org) to ping every 14min to keep it awake.
+
+---
+
+## 🐳 Docker
+
+```bash
+# Build
+docker build -t sentinel .
+
+# Run
+docker run -p 8080:8080 --env-file .env sentinel
+
+# → http://localhost:8080
+```
+
+---
+
+## 📊 Experiment Tracking
+
+All runs are traced with **MLflow** via **DagsHub**:
+
+- **Metrics**: F1 Score, Precision, Recall (train & test)
+- **Model Registry**: Best model registered as `NetworkSecurityModel`
+- **Dashboard**: [→ Open MLflow UI](https://dagshub.com/its-me-meax/networksecurity.mlflow)
 
 ---
 
 ## 📁 Project Structure
 
 ```
-networksecurity/
-├── app.py                        # FastAPI application (routes + API)
-├── main.py                       # Standalone pipeline runner (CLI)
-├── push_data.py                  # Load CSV data into MongoDB
-├── setup.py                      # Package configuration
-├── requirements.txt              # Python dependencies
-├── dockerfile                    # Docker container setup
+sentinel/
+├── app.py                        # FastAPI web application
+├── main.py                       # CLI pipeline runner
+├── push_data.py                  # Seed MongoDB with CSV data
+├── setup.py                      # Package config
+├── requirements.txt              # Dependencies
+├── dockerfile                    # Docker config
 ├── render.yaml                   # Render deployment blueprint
 │
-├── networksecurity/              # Core Python package
-│   ├── components/               # Pipeline stage implementations
-│   │   ├── data_ingestion.py         # Fetch data from MongoDB, train/test split
-│   │   ├── data_validation.py        # Schema validation & data drift detection
-│   │   ├── data_transformation.py    # KNN Imputation preprocessing pipeline
-│   │   └── model_trainer.py          # Multi-model training with MLflow tracking
-│   │
-│   ├── pipeline/                 # Pipeline orchestration
-│   │   ├── training_pipeline.py      # End-to-end training pipeline
-│   │   └── batch_prediction.py       # Batch prediction pipeline
-│   │
-│   ├── entity/                   # Data classes
-│   │   ├── config_entity.py          # Pipeline configuration objects
-│   │   └── artifact_entity.py        # Pipeline artifact objects
-│   │
-│   ├── constant/                 # Pipeline constants & hyperparameters
-│   │   └── training_pipeline/        # All pipeline-related constants
-│   │
-│   ├── utils/                    # Utility functions
-│   │   ├── main_utils/               # General utilities (save/load objects)
-│   │   └── ml_utils/                # ML utilities (model estimator, metrics)
-│   │
+├── networksecurity/              # Core ML package
+│   ├── components/               # Pipeline stages
+│   │   ├── data_ingestion.py
+│   │   ├── data_validation.py
+│   │   ├── data_transformation.py
+│   │   └── model_trainer.py
+│   ├── pipeline/                 # Orchestration
+│   │   └── training_pipeline.py
+│   ├── entity/                   # Config & artifact dataclasses
+│   ├── constant/                 # Hyperparameters & constants
+│   ├── utils/                    # Helpers (save/load, metrics)
 │   ├── exception/                # Custom exception handling
-│   └── logging/                  # Custom logging configuration
+│   └── logging/                  # Logger configuration
 │
 ├── static/                       # Frontend assets
-│   ├── css/style.css                 # Sentinel theme (dark/light)
-│   └── js/dotgrid.js                 # Animated dot-grid background
+│   ├── css/style.css             # Sentinel design system (1300+ lines)
+│   └── js/dotgrid.js             # Animated dot-grid background
 │
 ├── templates/                    # Jinja2 HTML templates
-│   ├── base.html                     # Base layout with navbar & theme toggle
-│   ├── index.html                    # Dashboard / landing page
-│   ├── analyze.html                  # CSV upload & prediction page
-│   ├── train.html                    # Model training trigger page
-│   └── table.html                    # Prediction results table
+│   ├── base.html                 # Layout + navbar + theme toggle
+│   ├── index.html                # Dashboard
+│   ├── analyze.html              # CSV upload & prediction
+│   ├── train.html                # Training trigger with live steps
+│   └── table.html                # Prediction results
 │
-├── Network_Data/                 # Raw network traffic data (CSV)
+├── Network_Data/                 # Raw phishing dataset (CSV)
 ├── data_schema/                  # YAML schema definitions
-├── Artifacts/                    # Pipeline artifacts (per-run outputs)
-├── final_model/                  # Production-ready model & preprocessor
-├── valid_data/                   # Validated data samples
-└── logs/                         # Application log files
+├── assets/                       # README screenshots
+└── final_model/                  # Saved model + preprocessor (.pkl)
 ```
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- **Python 3.10+**
-- **MongoDB** (local or [MongoDB Atlas](https://www.mongodb.com/atlas) — free tier available)
-- **Git**
-- **Docker** (optional, for containerized deployment)
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/its-me-meax/networksecurity.git
-cd networksecurity
-```
-
-### 2. Create a Virtual Environment
-
-```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# macOS / Linux
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-# MongoDB Connection
-MONGODB_URL_KEY=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
-MONGO_DB_URL=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
-
-# MLflow / DagsHub (optional — for experiment tracking)
-MLFLOW_TRACKING_URI=https://dagshub.com/<your-username>/networksecurity.mlflow
-MLFLOW_TRACKING_USERNAME=<your-dagshub-username>
-MLFLOW_TRACKING_PASSWORD=<your-dagshub-token>
-```
-
-### 5. Load Data into MongoDB
-
-```bash
-python push_data.py
-```
-
-This reads `Network_Data/phisingData.csv`, converts it to JSON records, and inserts them into the `Pradyumansh.NetworkData` collection in MongoDB.
-
----
-
-## 📖 Usage
-
-### Run the Training Pipeline (CLI)
-
-```bash
-python main.py
-```
-
-This executes the full pipeline: **Ingestion → Validation → Transformation → Training**, and saves the best model to `final_model/`.
-
-### Start the Web Application
-
-```bash
-python app.py
-```
-
-The server starts at `http://localhost:8080`. You'll see the Sentinel dashboard with options to:
-
-- **Upload a CSV** for phishing predictions (`/analyze`)
-- **Train the model** from the web UI (`/train-model`)
-- **Toggle dark/light themes** using the navbar button
-
----
-
-## 🤖 ML Pipeline Details
-
-### Data Ingestion
-- Connects to MongoDB and exports the `NetworkData` collection
-- Splits data into **train** (80%) and **test** (20%) sets
-
-### Data Validation
-- Validates data against the schema defined in `data_schema/schema.yaml`
-- Generates a **drift report** (`report.yaml`) to detect feature distribution changes
-
-### Data Transformation
-- Uses **KNN Imputer** (k=3, uniform weights) to handle missing values
-- Saves the fitted preprocessor as a `.pkl` artifact
-
-### Model Training
-The system trains and compares **5 classification models** with hyperparameter tuning:
-
-| Model                  | Tuned Hyperparameters                                  |
-|------------------------|-------------------------------------------------------|
-| **Random Forest**      | `n_estimators`: [8, 16, 32, 128, 256]                 |
-| **Decision Tree**      | `criterion`: [gini, entropy, log_loss]                 |
-| **Gradient Boosting**  | `learning_rate`, `subsample`, `n_estimators`           |
-| **Logistic Regression**| Default parameters                                     |
-| **AdaBoost**           | `learning_rate`, `n_estimators`                        |
-
-- The **best model** (by score) is selected automatically
-- Evaluated using **F1 Score**, **Precision**, and **Recall**
-- Minimum expected score threshold: **0.6**
-- Overfitting/underfitting threshold: **0.05**
-
----
-
-## 🌐 API Endpoints
-
-| Method | Endpoint      | Description                                             |
-|--------|--------------|--------------------------------------------------------|
-| `GET`  | `/`          | Dashboard — Sentinel landing page                      |
-| `GET`  | `/analyze`   | CSV upload page for phishing predictions               |
-| `GET`  | `/train-model`| Model training trigger page                           |
-| `GET`  | `/train`     | **API**: Triggers the full ML training pipeline        |
-| `POST` | `/predict`   | **API**: Upload a CSV → get phishing predictions       |
-
-### Predict Endpoint Example
-
-```bash
-curl -X POST "http://localhost:8080/predict" \
-  -F "file=@your_network_data.csv"
-```
-
-The response renders an HTML table with predictions appended as a `predicted_column` (0 = legitimate, 1 = phishing).
-
----
-
-## ☁️ Deploy to Render (Free)
-
-[Render](https://render.com) offers a **free tier** for web services with Docker support — perfect for this project.
-
-### Option A: One-Click Deploy (Recommended)
-
-1. **Push your code** to a GitHub repository
-2. Go to [render.com/new](https://dashboard.render.com/create) and sign up (free)
-3. Click **"New" → "Web Service"**
-4. **Connect your GitHub repo** (`networksecurity`)
-5. Render will auto-detect the `dockerfile` and `render.yaml`. Configure:
-   - **Name**: `networksecurity` (or any name you prefer)
-   - **Region**: Choose the closest to you
-   - **Plan**: **Free**
-6. **Add Environment Variables** in the Render dashboard:
-
-   | Key                       | Value                                |
-   |--------------------------|--------------------------------------|
-   | `MONGODB_URL_KEY`        | Your MongoDB connection string       |
-   | `MONGO_DB_URL`           | Your MongoDB connection string       |
-   | `MLFLOW_TRACKING_URI`    | Your DagsHub MLflow URL (optional)   |
-   | `MLFLOW_TRACKING_USERNAME`| Your DagsHub username (optional)    |
-   | `MLFLOW_TRACKING_PASSWORD`| Your DagsHub token (optional)       |
-
-7. Click **"Create Web Service"** — Render will build the Docker image and deploy automatically!
-
-### Option B: Using Render Blueprint
-
-The project includes a `render.yaml` blueprint file. You can use it for automated setup:
-
-1. Push code to GitHub
-2. Go to [render.com/blueprints](https://dashboard.render.com/blueprints)
-3. Click **"New Blueprint Instance"**
-4. Select your GitHub repo
-5. Render will read `render.yaml` and configure everything automatically
-6. Fill in the environment variables when prompted
-7. Deploy!
-
-### After Deployment
-
-- Your app will be live at `https://networksecurity-xxxx.onrender.com`
-- The free tier spins down after ~15 min of inactivity (first request after sleep takes ~30s to wake up)
-- Render auto-deploys on every push to `main`
-
-> **💡 Tip**: To keep the app awake, you can set up a free cron job on [cron-job.org](https://cron-job.org) to ping your URL every 14 minutes.
-
----
-
-## 🐳 Docker Deployment
-
-### Build the Image
-
-```bash
-docker build -t networksecurity .
-```
-
-### Run the Container
-
-```bash
-docker run -p 8080:8080 --env-file .env networksecurity
-```
-
-The API will be available at `http://localhost:8080`.
-
----
-
-## 📊 Experiment Tracking
-
-All training runs are tracked with **MLflow** via **DagsHub**:
-
-- **Metrics logged**: F1 Score, Precision, Recall (for both train and test sets)
-- **Models logged**: Best sklearn model is registered as `NetworkSecurityModel`
-- **Dashboard**: [DagsHub MLflow UI](https://dagshub.com/its-me-meax/networksecurity.mlflow)
-
-To set up your own tracking:
-
-1. Create a free [DagsHub](https://dagshub.com) account
-2. Connect your GitHub repo to DagsHub
-3. Copy the MLflow tracking URI, username, and token
-4. Add them to your `.env` file
 
 ---
 
 ## 🔐 Environment Variables
 
-| Variable                  | Required | Description                           |
-|--------------------------|----------|---------------------------------------|
-| `MONGODB_URL_KEY`        | ✅       | MongoDB connection string             |
-| `MONGO_DB_URL`           | ✅       | MongoDB connection string (duplicate) |
-| `MLFLOW_TRACKING_URI`    | ❌       | DagsHub MLflow tracking URL           |
-| `MLFLOW_TRACKING_USERNAME`| ❌      | DagsHub username                      |
-| `MLFLOW_TRACKING_PASSWORD`| ❌      | DagsHub access token                  |
+| Variable | Required | Description |
+|----------|:--------:|-------------|
+| `MONGODB_URL_KEY` | ✅ | MongoDB connection string |
+| `MONGO_DB_URL` | ✅ | MongoDB connection string |
+| `MLFLOW_TRACKING_URI` | ❌ | DagsHub MLflow tracking URL |
+| `MLFLOW_TRACKING_USERNAME` | ❌ | DagsHub username |
+| `MLFLOW_TRACKING_PASSWORD` | ❌ | DagsHub access token |
 
-> **⚠️ Security**: Never commit your `.env` file. It's already in `.gitignore`.
+> ⚠️ **Never commit `.env`** — it's already in `.gitignore`.
 
 ---
 
 ## 🤝 Contributing
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/your-feature`)
-3. **Commit** your changes (`git commit -m 'Add your feature'`)
-4. **Push** to the branch (`git push origin feature/your-feature`)
-5. **Open** a Pull Request
+```bash
+# 1. Fork the repo
+# 2. Create a feature branch
+git checkout -b feature/amazing-feature
+
+# 3. Commit your changes
+git commit -m "Add amazing feature"
+
+# 4. Push & open a PR
+git push origin feature/amazing-feature
+```
 
 ---
 
@@ -392,6 +366,10 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 ---
 
-## 👤 Author
+<div align="center">
 
-**Pradyuman Sharma** — [@its-me-meax](https://github.com/its-me-meax)
+### Built with ❤️ by [Pradyuman Sharma](https://github.com/its-me-meax)
+
+⭐ **Star this repo** if you found it useful!
+
+</div>
